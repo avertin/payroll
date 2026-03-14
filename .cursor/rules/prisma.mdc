@@ -1,0 +1,70 @@
+---
+description: Use Prisma (v7, SQLite) correctly in this project
+alwaysApply: true
+---
+
+# Prisma
+
+## Client and schema
+
+- **Generated client**: import from `@/generated/client`. Do not import from `@prisma/client`.
+- **Schema and models**: The main schema is **`prisma/schema.prisma`** (generator and datasource). Add model definitions in **`prisma/models/*.prisma`** (e.g. `prisma/models/users.prisma`). Prisma loads all `.prisma` files under `prisma/`. Do not put or duplicate Prisma models in feature code; features use the generated client and types from `@/generated/...` and `@/shared/db` only.
+- **Schema**: edit `prisma/schema.prisma` and `prisma/models/*.prisma` only. Database URL comes from `DATABASE_URL` in `.env`; it is also read in `prisma.config.ts` for CLI (db push, studio).
+- After schema changes: run `npm run db:generate` then `npm run db:push` to sync the DB.
+
+## Using the client in app code
+
+- **Single shared instance**: import the shared client from `@/shared/db`. Do not call `new PrismaClient()` in other files.
+- **Adapter**: `src/shared/db.ts` uses `@prisma/adapter-better-sqlite3` and `process.env.DATABASE_URL` (see Prisma docs). Ensure `.env` exists (copy from `.env.example`) with `DATABASE_URL="file:./prisma/dev.db"` or your path.
+- Use the client only in **server** code (Server Components, Route Handlers, server actions). Do not import or use Prisma in Client Components.
+
+## Domains
+
+A **domain** is a bounded area of the app with its own models and data. Examples:
+
+- **Catalog**: models for products, categories, variants, etc.
+- **Reviews**: its own models (e.g. reviews, ratings, helpfulness votes).
+- Other domains as the product grows.
+
+- **One Prisma file per domain**: Each domain (feature) has a single data module that uses the shared Prisma client, living in that feature’s `api/` (e.g. `src/features/catalog/api/data.ts`, `src/features/reviews/api/data.ts`). Do not scatter Prisma calls across UI or feature components; centralize in the feature’s api layer.
+- **Shared models → own feature**: If two or more features reference the same model, extract that model into its own feature with its own api/data module. Example: if both catalog and reviews reference users, then **users** is a separate feature (e.g. `src/features/users/api/data.ts`); catalog and reviews call into the users feature’s api or route handlers instead of touching the users model directly.
+
+## Data access and UI
+
+- **Prefer APIs from UI**: In Server Components and UI-facing code, prefer calling API routes (or server actions that delegate to domain layers) rather than importing Prisma directly. Keep data access behind APIs or domain modules so the UI stays decoupled from the database.
+
+## Example
+
+```ts
+// In a feature's api layer (e.g. src/features/users/api/data.ts)
+import { prisma } from "@/shared/db";
+
+export async function getUsers() {
+  return prisma.user.findMany();
+}
+```
+
+```ts
+// In a Server Component: call API or domain module, not Prisma directly
+const res = await fetch("/api/users");
+const users = await res.json();
+// or: const users = await getUsers();
+```
+
+## Seed
+
+- **Entrypoint (SOT)**: `prisma/seeds/seed.ts` is the only file Prisma runs. Configure it in `prisma.config.ts` under `migrations.seed` (e.g. `seed: "tsx prisma/seeds/seed.ts"`). Run with `npx prisma db seed` or `npm run db:seed`.
+- **Seed logic**: Put seed functions in `prisma/seeds/*.ts` (e.g. `prisma/seeds/users.ts` exporting `seedUsers()`). The entrypoint `prisma/seeds/seed.ts` imports and runs them in dependency order. Do not put seed code in feature folders.
+- Use the shared client: `import { prisma } from "@/shared/db"` in seed files. If path aliases do not resolve when running via `tsx` (e.g. from CLI), use a relative path from `prisma/seeds/` to `src/shared/db`.
+- Prefer **upsert** (or equivalent) so the seed script is idempotent. Guard production: do not run seed in production unless explicitly allowed (e.g. `NODE_ENV` check or `ALLOW_SEED_IN_PRODUCTION=true`).
+
+## Backfills
+
+- **Location**: Backfills live in `prisma/backfills/`. One script per backfill (e.g. `prisma/backfills/backfill-user-display-name.ts`). Run with `npx tsx prisma/backfills/<script>.ts`.
+- Use the shared client: `import { prisma } from "@/shared/db"` (or relative path from `prisma/backfills/` to `src/shared/db` if needed).
+- Keep each backfill idempotent and scoped; log progress and errors. Support `--dry-run` (or env) for risky or large backfills when useful.
+
+## Conventions
+
+- Name models in PascalCase; use `@@map("snake_case_table")` only if you need a specific table name.
+- Prefer explicit relations and foreign keys in the schema. This project uses `db push` only (no migrations).

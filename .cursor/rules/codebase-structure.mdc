@@ -1,0 +1,41 @@
+---
+description: Feature-based layout, app for routing, tests alongside source
+alwaysApply: true
+---
+
+# Codebase structure
+
+## Feature-based layout
+
+- **Features** live under `src/features/<feature-name>/`:
+  - **`api/`** – Server-only logic for this feature (e.g. upload handlers, server actions, orchestration). No React, no browser APIs.
+  - **`components/`** – Feature-specific UI. Use for screens, forms, and widgets that belong to this feature only.
+  - **`dto.ts`** (or **`types.ts`**) at the **feature root** – Shared types/DTOs for the feature. Used by both `api/` and `components/`. Use for request/response shapes, view models, and any type that crosses the api/components boundary. Prisma covers DB models; this file is for feature-level contracts and serialized shapes (e.g. dates as strings over the wire).
+- **App** (`src/app/`) is for routing only:
+  - Pages and route handlers **import from** `@/features/<name>/api`, `@/features/<name>/components`, and `@/features/<name>/dto` (or types). They do not contain business logic—only layout, one data/action call, and composition.
+  - Exception: root `layout.tsx` (and any root `app.tsx`) are app-level and can contain global layout and providers.
+- **Shared** (`src/shared/`) is used across features:
+  - **`shared/components/`** – Design-system / shared UI. Primitive or reusable UI that is not feature-specific (e.g. Button, Table, Header, form controls). Features and app import from `@/shared/components`; this folder does not import from `features`.
+  - **`shared/`** (root) – DB client (`db.ts`), cross-feature utilities (`utils.ts`), and low-level pipelines. Features import from `@/shared/...`; shared does not import from `features`.
+
+## Tests
+
+- **Tests live alongside what they test.** Use the `<thing>.test.tsx` (or `<thing>.test.ts`) naming convention: place the test file next to the module or component it tests (e.g. `Button.test.tsx` beside `Button.tsx`, `getUsers.test.ts` beside `getUsers.ts`).
+- Do not centralize tests in a single `__tests__` or `tests/` folder at the project root; keep them colocated with the feature or component.
+
+## Conventions
+
+- Keep route handlers thin: parse request (or delegate to a small parser), call one function from the feature's `api/`, return the response.
+- Keep pages thin: import feature components and api (or data) from the feature, render layout + view. No business logic in the page file.
+- Prefer importing from `@/features/<name>/...` and `@/shared/...` using the project's path aliases. Avoid deep relative paths across layers.
+
+## Seeds and backfills
+
+- **Seed**: The seed entrypoint is `prisma/seeds/seed.ts` (single source of truth). Other files in `prisma/seeds/*.ts` export seed functions; the entrypoint imports and runs them in order. Run with `npm run db:seed` or `npx prisma db seed`.
+- **Backfills**: One-off or repeatable DB scripts live in `prisma/backfills/`. Run with `npx tsx prisma/backfills/<script>.ts`. Do not put seed or backfill logic in feature folders.
+
+## Generated code
+
+- **Generated** (`src/generated/`) holds tool output (Prisma client, API clients, etc.). No per-tool subfolders; generated code lives directly under `src/generated/`.
+- Treat it as read-only: do not edit; update by re-running the generator after schema/spec changes.
+- **shared** and **features** may import from `@/generated/...`. **generated** must not import from app, features, or shared.

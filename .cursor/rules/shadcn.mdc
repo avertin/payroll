@@ -1,0 +1,39 @@
+---
+description: Use shadcn/ui components and patterns correctly
+alwaysApply: true
+---
+
+# shadcn/ui
+
+## Adding components
+
+- Prefer adding via CLI: `npx shadcn@latest add <component>` (e.g. `card`, `dialog`, `input`). Check `components.json` for style/aliases.
+- Import from project aliases, not from `node_modules`: use `@/shared/components/...` and `@/shared/utils` for `cn()`.
+
+## Usage
+
+- Use the **primitive + `cn()`** pattern: compose `className` with `cn()` from `@/shared/utils` so overrides and Tailwind work correctly.
+- Prefer composition over forking: wrap or combine existing shadcn components instead of copying and editing their source unless you need a one-off variant.
+- Use **RSC by default** (this project has `rsc: true`). Put `"use client"` only on components that need hooks, browser APIs, or interactivity.
+- Icons: use `lucide-react` (see `components.json` → `iconLibrary`). Import as `import { IconName } from "lucide-react"`.
+
+## Example
+
+```tsx
+import { cn } from "@/shared/utils";
+import { Button } from "@/shared/components/button";
+
+export function MyFeature() {
+  return (
+    <Button className={cn("w-full", someCondition && "opacity-50")}>
+      Submit
+    </Button>
+  );
+}
+```
+
+## Paths (from components.json)
+
+- UI components: `@/shared/components/*` – shared/design-system primitives only (see codebase-structure: `src/shared/components/` is for reusable UI; feature-specific UI lives in `src/features/<name>/components/`).
+- Utils: `@/shared/utils`
+- Hooks: `@/hooks` (create here if adding shared hooks)

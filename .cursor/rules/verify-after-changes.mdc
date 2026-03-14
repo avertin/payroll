@@ -1,0 +1,15 @@
+---
+description: After making code changes, verify types, lint, tests, and dev server
+alwaysApply: true
+---
+
+# Verify after changes
+
+Every time you make a code change in this project:
+
+1. **Run typecheck**: `npm run typecheck` (runs `tsc --noEmit`). Fix any type errors before finishing.
+2. **Run lint**: `npm run lint`. Fix any ESLint errors or warnings that you introduced.
+3. **Run unit tests**: `npm run test`. Fix any failing tests before finishing.
+4. **Check dev server**: Run `npm run dev` (or confirm it is already running) and fix any build or runtime errors that appear in the terminal.
+
+Do this before considering the task done. If typecheck, lint, or tests fail, or the dev server reports errors, fix the issues and re-run until all pass.

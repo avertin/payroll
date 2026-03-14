@@ -1,0 +1,8 @@
+.next
+node_modules
+out
+build
+*.lock
+
+# Generated (Prisma)
+src/generated
