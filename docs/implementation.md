@@ -91,9 +91,41 @@ Add boolean to keep validations for now but bypass the logic during seed
 
 API & presentation layer.
 
+P0:
+Add a GET api route for payroll to return all the payroll data w/the following calculated additions:
+
+- per week per employee:
+  - total st hrs
+  - total ot hrs
+  - total st wage
+  - total ot wage
+  - total wage = (total st wage + total ot wage)
+- grand totals
+  - total number of unique employees
+  - Average wage rates and benefits rates
+  - Cumulative payroll spend
+  - Percentage of total hours attributable to apprentices
+
+Show the underlying data in a table. Allow the table to be grouped by employee or by payroll week. Add dropdown filters for level and occupation. Add a search by name. These should be AND type filters / search.
+
+Also include the grand totals as metric cards at the top.
+
+Use tanstack table for the grouping, filters, etc business logic of the table.
+
+P1: Split views by agg level
+All - - Cards: - existing - total hours on project - Table - existing, group by none
+By Employee - Cards: - Maximum, minimum, and average hours per day - Maximum, minimum, and average wage rates (standard, overtime, benefits) - Maximum, minimum, and average %OT - Table: - total all time pay for an employee - avg weekly hours for an employee - option to expand row to drill into weekly details - Max single-week hours - Min single-week hours - % OT - Number of weeks worked - Rate variance, flag w/boolean if their wage changed
+
+add nuqs for filtering, make filters apply to the tables and the cards?
+
 ## Step 3
 
 File upload + validation
+
+- more hours in a single day than exist
+- rate changes for an employee
+- no more than 8 st hours in a day
+- name spelling issues
 
 ## Notes
 
