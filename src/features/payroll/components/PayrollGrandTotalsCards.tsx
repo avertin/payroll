@@ -31,10 +31,11 @@ export function PayrollGrandTotalsCards({
     avgBenefitsRate,
     cumulativePayrollSpend,
     pctHoursFromApprentices,
+    totalHoursOnProject,
   } = grandTotals;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
       <Card>
         <CardHeader>
           <CardTitle>Unique employees</CardTitle>
@@ -90,6 +91,16 @@ export function PayrollGrandTotalsCards({
         <CardContent>
           <span className="text-2xl font-semibold">
             {formatPercent(pctHoursFromApprentices)}
+          </span>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Total hours on project</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <span className="text-2xl font-semibold">
+            {totalHoursOnProject.toFixed(1)}
           </span>
         </CardContent>
       </Card>

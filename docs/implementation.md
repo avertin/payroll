@@ -116,16 +116,22 @@ P1: Split views by agg level
 All - - Cards: - existing - total hours on project - Table - existing, group by none
 By Employee - Cards: - Maximum, minimum, and average hours per day - Maximum, minimum, and average wage rates (standard, overtime, benefits) - Maximum, minimum, and average %OT - Table: - total all time pay for an employee - avg weekly hours for an employee - option to expand row to drill into weekly details - Max single-week hours - Min single-week hours - % OT - Number of weeks worked - Rate variance, flag w/boolean if their wage changed
 
-add nuqs for filtering, make filters apply to the tables and the cards?
+Stretch goals:
+add nuqs for filtering, make filters apply to the tables and the cards
 
 ## Step 3
 
 File upload + validation
 
+In the top right, add a button for "Upload payroll". Go to a new page, payroll/upload. Add a new endpoint which accepts as single CSV files. Reuse the same logic from the seed data helpers for the csv. DO NOT bypass validation. If validation fails, return a 400 with the details of the failure. In addition to the existing validations, add the following:
+
 - more hours in a single day than exist
-- rate changes for an employee
 - no more than 8 st hours in a day
-- name spelling issues
+- look for duplicate rows and do not add duplicates, flag as a validation issue
+  On success, 200 w/number of rows successfully added.
+
+For the page UI, have a drag and drop UI section. Allow 1 file at a time and only csv. When a file has been added, minimze the height and show a loading spinner. One response -
+show errors OR show success message w/number of rows added.
 
 ## Notes
 

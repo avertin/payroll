@@ -91,14 +91,6 @@ export interface PayrollReportDto {
 
 // --- By Employee view ---
 
-/** One week of data for an employee (expandable row detail). */
-export interface PayrollByEmployeeWeekDto {
-  weekEnding: string; // ISO
-  totalStHrs: number;
-  totalOtHrs: number;
-  totalWage: number;
-}
-
 /** One row in the by-employee report (aggregated per employee). */
 export interface PayrollByEmployeeRowDto {
   employeeId: number;
@@ -106,13 +98,13 @@ export interface PayrollByEmployeeRowDto {
   occupation: string;
   level: EmployeeLevel;
   totalAllTimePay: number;
+  totalHours: number;
   avgWeeklyHours: number;
   maxSingleWeekHours: number;
   minSingleWeekHours: number;
   pctOt: number;
   numberOfWeeksWorked: number;
   rateVariance: boolean;
-  weeks: PayrollByEmployeeWeekDto[];
 }
 
 /** Grand totals for the by-employee view cards (min/max/avg metrics). */

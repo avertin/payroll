@@ -4,4 +4,7 @@ export {
   type ValidationError,
   type ValidationResult,
 } from "./validatePayroll";
-export { getPayrollReport } from "./getPayrollReport";
+export {
+  getPayrollReport,
+  getPayrollReportByEmployee,
+} from "./getPayrollReport";
