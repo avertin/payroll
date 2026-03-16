@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.5.0",
   "engineVersion": "280c870be64f457428992c43c1f6d557fab6e29e",
   "activeProvider": "sqlite",
-  "inlineSchema": "// Generator and datasource. Model definitions live in prisma/models/*.prisma\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n}\n",
+  "inlineSchema": "enum EmployeeLevel {\n  APPRENTICE\n  JOURNEYWORKER\n}\n\nmodel Employee {\n  id          Int           @id // business id from CSV employee_id\n  name        String\n  occupation  String\n  level       EmployeeLevel\n  weeklyWages WeeklyWages[]\n}\n\nmodel WeeklyWages {\n  id           String   @id // unique id (e.g. uuid)\n  weekEnding   DateTime\n  employeeId   Int\n  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  monStHours   Float\n  tueStHours   Float\n  wedStHours   Float\n  thuStHours   Float\n  friStHours   Float\n  satStHours   Float\n  sunStHours   Float\n  monOtHours   Float\n  tueOtHours   Float\n  wedOtHours   Float\n  thuOtHours   Float\n  friOtHours   Float\n  satOtHours   Float\n  sunOtHours   Float\n  standardRate Float\n  overtimeRate Float\n  benefitsRate Float\n\n  @@unique([employeeId, weekEnding])\n}\n\n// Generator and datasource. Model definitions live in prisma/models/*.prisma\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -32,10 +32,10 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Employee\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"occupation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"level\",\"kind\":\"enum\",\"type\":\"EmployeeLevel\"},{\"name\":\"weeklyWages\",\"kind\":\"object\",\"type\":\"WeeklyWages\",\"relationName\":\"EmployeeToWeeklyWages\"}],\"dbName\":null},\"WeeklyWages\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"weekEnding\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"employeeId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"employee\",\"kind\":\"object\",\"type\":\"Employee\",\"relationName\":\"EmployeeToWeeklyWages\"},{\"name\":\"monStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"tueStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"wedStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"thuStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"friStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"satStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"sunStHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"monOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"tueOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"wedOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"thuOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"friOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"satOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"sunOtHours\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"standardRate\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"overtimeRate\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"benefitsRate\",\"kind\":\"scalar\",\"type\":\"Float\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 config.parameterizationSchema = {
-  strings: JSON.parse("[]"),
-  graph: "AAAA"
+  strings: JSON.parse("[\"where\",\"orderBy\",\"cursor\",\"employee\",\"weeklyWages\",\"_count\",\"Employee.findUnique\",\"Employee.findUniqueOrThrow\",\"Employee.findFirst\",\"Employee.findFirstOrThrow\",\"Employee.findMany\",\"data\",\"Employee.createOne\",\"Employee.createMany\",\"Employee.createManyAndReturn\",\"Employee.updateOne\",\"Employee.updateMany\",\"Employee.updateManyAndReturn\",\"create\",\"update\",\"Employee.upsertOne\",\"Employee.deleteOne\",\"Employee.deleteMany\",\"having\",\"_avg\",\"_sum\",\"_min\",\"_max\",\"Employee.groupBy\",\"Employee.aggregate\",\"WeeklyWages.findUnique\",\"WeeklyWages.findUniqueOrThrow\",\"WeeklyWages.findFirst\",\"WeeklyWages.findFirstOrThrow\",\"WeeklyWages.findMany\",\"WeeklyWages.createOne\",\"WeeklyWages.createMany\",\"WeeklyWages.createManyAndReturn\",\"WeeklyWages.updateOne\",\"WeeklyWages.updateMany\",\"WeeklyWages.updateManyAndReturn\",\"WeeklyWages.upsertOne\",\"WeeklyWages.deleteOne\",\"WeeklyWages.deleteMany\",\"WeeklyWages.groupBy\",\"WeeklyWages.aggregate\",\"AND\",\"OR\",\"NOT\",\"id\",\"weekEnding\",\"employeeId\",\"monStHours\",\"tueStHours\",\"wedStHours\",\"thuStHours\",\"friStHours\",\"satStHours\",\"sunStHours\",\"monOtHours\",\"tueOtHours\",\"wedOtHours\",\"thuOtHours\",\"friOtHours\",\"satOtHours\",\"sunOtHours\",\"standardRate\",\"overtimeRate\",\"benefitsRate\",\"equals\",\"in\",\"notIn\",\"lt\",\"lte\",\"gt\",\"gte\",\"not\",\"contains\",\"startsWith\",\"endsWith\",\"name\",\"occupation\",\"EmployeeLevel\",\"level\",\"every\",\"some\",\"none\",\"employeeId_weekEnding\",\"is\",\"isNot\",\"connectOrCreate\",\"upsert\",\"createMany\",\"set\",\"disconnect\",\"delete\",\"connect\",\"updateMany\",\"deleteMany\",\"increment\",\"decrement\",\"multiply\",\"divide\"]"),
+  graph: "dhYgCAQAAEoAIC4AAEYAMC8AAAkAEDAAAEYAMDECAAAAAVABAEgAIVEBAEgAIVMAAElTIgEAAAABACAYAwAATwAgLgAATAAwLwAAAwAQMAAATAAwMQEASAAhMkAATQAhMwIARwAhNAgATgAhNQgATgAhNggATgAhNwgATgAhOAgATgAhOQgATgAhOggATgAhOwgATgAhPAgATgAhPQgATgAhPggATgAhPwgATgAhQAgATgAhQQgATgAhQggATgAhQwgATgAhRAgATgAhAQMAAHAAIBkDAABPACAuAABMADAvAAADABAwAABMADAxAQAAAAEyQABNACEzAgBHACE0CABOACE1CABOACE2CABOACE3CABOACE4CABOACE5CABOACE6CABOACE7CABOACE8CABOACE9CABOACE-CABOACE_CABOACFACABOACFBCABOACFCCABOACFDCABOACFECABOACFXAABLACADAAAAAwAgAQAABAAwAgAABQAgAQAAAAMAIAEAAAABACAIBAAASgAgLgAARgAwLwAACQAQMAAARgAwMQIARwAhUAEASAAhUQEASAAhUwAASVMiAQQAAG8AIAMAAAAJACABAAAKADACAAABACADAAAACQAgAQAACgAwAgAAAQAgAwAAAAkAIAEAAAoAMAIAAAEAIAUEAABuACAxAgAAAAFQAQAAAAFRAQAAAAFTAAAAUwIBCwAADgAgBDECAAAAAVABAAAAAVEBAAAAAVMAAABTAgELAAAQADABCwAAEAAwBQQAAGEAIDECAFgAIVABAFUAIVEBAFUAIVMAAGBTIgIAAAABACALAAATACAEMQIAWAAhUAEAVQAhUQEAVQAhUwAAYFMiAgAAAAkAIAsAABUAIAIAAAAJACALAAAVACADAAAAAQAgEgAADgAgEwAAEwAgAQAAAAEAIAEAAAAJACAFBQAAWwAgGAAAXAAgGQAAXwAgGgAAXgAgGwAAXQAgBy4AAEIAMC8AABwAEDAAAEIAMDECADgAIVABADYAIVEBADYAIVMAAENTIgMAAAAJACABAAAbADAXAAAcACADAAAACQAgAQAACgAwAgAAAQAgAQAAAAUAIAEAAAAFACADAAAAAwAgAQAABAAwAgAABQAgAwAAAAMAIAEAAAQAMAIAAAUAIAMAAAADACABAAAEADACAAAFACAVAwAAWgAgMQEAAAABMkAAAAABMwIAAAABNAgAAAABNQgAAAABNggAAAABNwgAAAABOAgAAAABOQgAAAABOggAAAABOwgAAAABPAgAAAABPQgAAAABPggAAAABPwgAAAABQAgAAAABQQgAAAABQggAAAABQwgAAAABRAgAAAABAQsAACQAIBQxAQAAAAEyQAAAAAEzAgAAAAE0CAAAAAE1CAAAAAE2CAAAAAE3CAAAAAE4CAAAAAE5CAAAAAE6CAAAAAE7CAAAAAE8CAAAAAE9CAAAAAE-CAAAAAE_CAAAAAFACAAAAAFBCAAAAAFCCAAAAAFDCAAAAAFECAAAAAEBCwAAJgAwAQsAACYAMBUDAABZACAxAQBVACEyQABWACEzAgBYACE0CABXACE1CABXACE2CABXACE3CABXACE4CABXACE5CABXACE6CABXACE7CABXACE8CABXACE9CABXACE-CABXACE_CABXACFACABXACFBCABXACFCCABXACFDCABXACFECABXACECAAAABQAgCwAAKQAgFDEBAFUAITJAAFYAITMCAFgAITQIAFcAITUIAFcAITYIAFcAITcIAFcAITgIAFcAITkIAFcAIToIAFcAITsIAFcAITwIAFcAIT0IAFcAIT4IAFcAIT8IAFcAIUAIAFcAIUEIAFcAIUIIAFcAIUMIAFcAIUQIAFcAIQIAAAADACALAAArACACAAAAAwAgCwAAKwAgAwAAAAUAIBIAACQAIBMAACkAIAEAAAAFACABAAAAAwAgBQUAAFAAIBgAAFEAIBkAAFQAIBoAAFMAIBsAAFIAIBcuAAA1ADAvAAAyABAwAAA1ADAxAQA2ACEyQAA3ACEzAgA4ACE0CAA5ACE1CAA5ACE2CAA5ACE3CAA5ACE4CAA5ACE5CAA5ACE6CAA5ACE7CAA5ACE8CAA5ACE9CAA5ACE-CAA5ACE_CAA5ACFACAA5ACFBCAA5ACFCCAA5ACFDCAA5ACFECAA5ACEDAAAAAwAgAQAAMQAwFwAAMgAgAwAAAAMAIAEAAAQAMAIAAAUAIBcuAAA1ADAvAAAyABAwAAA1ADAxAQA2ACEyQAA3ACEzAgA4ACE0CAA5ACE1CAA5ACE2CAA5ACE3CAA5ACE4CAA5ACE5CAA5ACE6CAA5ACE7CAA5ACE8CAA5ACE9CAA5ACE-CAA5ACE_CAA5ACFACAA5ACFBCAA5ACFCCAA5ACFDCAA5ACFECAA5ACEOBQAAOwAgGgAAQQAgGwAAQQAgRQEAAAABRgEAAAAERwEAAAAESAEAAAABSQEAAAABSgEAAAABSwEAAAABTAEAQAAhTQEAAAABTgEAAAABTwEAAAABCwUAADsAIBoAAD8AIBsAAD8AIEVAAAAAAUZAAAAABEdAAAAABEhAAAAAAUlAAAAAAUpAAAAAAUtAAAAAAUxAAD4AIQ0FAAA7ACAYAAA8ACAZAAA7ACAaAAA7ACAbAAA7ACBFAgAAAAFGAgAAAARHAgAAAARIAgAAAAFJAgAAAAFKAgAAAAFLAgAAAAFMAgA9ACENBQAAOwAgGAAAPAAgGQAAPAAgGgAAPAAgGwAAPAAgRQgAAAABRggAAAAERwgAAAAESAgAAAABSQgAAAABSggAAAABSwgAAAABTAgAOgAhDQUAADsAIBgAADwAIBkAADwAIBoAADwAIBsAADwAIEUIAAAAAUYIAAAABEcIAAAABEgIAAAAAUkIAAAAAUoIAAAAAUsIAAAAAUwIADoAIQhFAgAAAAFGAgAAAARHAgAAAARIAgAAAAFJAgAAAAFKAgAAAAFLAgAAAAFMAgA7ACEIRQgAAAABRggAAAAERwgAAAAESAgAAAABSQgAAAABSggAAAABSwgAAAABTAgAPAAhDQUAADsAIBgAADwAIBkAADsAIBoAADsAIBsAADsAIEUCAAAAAUYCAAAABEcCAAAABEgCAAAAAUkCAAAAAUoCAAAAAUsCAAAAAUwCAD0AIQsFAAA7ACAaAAA_ACAbAAA_ACBFQAAAAAFGQAAAAARHQAAAAARIQAAAAAFJQAAAAAFKQAAAAAFLQAAAAAFMQAA-ACEIRUAAAAABRkAAAAAER0AAAAAESEAAAAABSUAAAAABSkAAAAABS0AAAAABTEAAPwAhDgUAADsAIBoAAEEAIBsAAEEAIEUBAAAAAUYBAAAABEcBAAAABEgBAAAAAUkBAAAAAUoBAAAAAUsBAAAAAUwBAEAAIU0BAAAAAU4BAAAAAU8BAAAAAQtFAQAAAAFGAQAAAARHAQAAAARIAQAAAAFJAQAAAAFKAQAAAAFLAQAAAAFMAQBBACFNAQAAAAFOAQAAAAFPAQAAAAEHLgAAQgAwLwAAHAAQMAAAQgAwMQIAOAAhUAEANgAhUQEANgAhUwAAQ1MiBwUAADsAIBoAAEUAIBsAAEUAIEUAAABTAkYAAABTCEcAAABTCEwAAERTIgcFAAA7ACAaAABFACAbAABFACBFAAAAUwJGAAAAUwhHAAAAUwhMAABEUyIERQAAAFMCRgAAAFMIRwAAAFMITAAARVMiCAQAAEoAIC4AAEYAMC8AAAkAEDAAAEYAMDECAEcAIVABAEgAIVEBAEgAIVMAAElTIghFAgAAAAFGAgAAAARHAgAAAARIAgAAAAFJAgAAAAFKAgAAAAFLAgAAAAFMAgA7ACELRQEAAAABRgEAAAAERwEAAAAESAEAAAABSQEAAAABSgEAAAABSwEAAAABTAEAQQAhTQEAAAABTgEAAAABTwEAAAABBEUAAABTAkYAAABTCEcAAABTCEwAAEVTIgNUAAADACBVAAADACBWAAADACACMkAAAAABMwIAAAABGAMAAE8AIC4AAEwAMC8AAAMAEDAAAEwAMDEBAEgAITJAAE0AITMCAEcAITQIAE4AITUIAE4AITYIAE4AITcIAE4AITgIAE4AITkIAE4AIToIAE4AITsIAE4AITwIAE4AIT0IAE4AIT4IAE4AIT8IAE4AIUAIAE4AIUEIAE4AIUIIAE4AIUMIAE4AIUQIAE4AIQhFQAAAAAFGQAAAAARHQAAAAARIQAAAAAFJQAAAAAFKQAAAAAFLQAAAAAFMQAA_ACEIRQgAAAABRggAAAAERwgAAAAESAgAAAABSQgAAAABSggAAAABSwgAAAABTAgAPAAhCgQAAEoAIC4AAEYAMC8AAAkAEDAAAEYAMDECAEcAIVABAEgAIVEBAEgAIVMAAElTIlgAAAkAIFkAAAkAIAAAAAAAAV0BAAAAAQFdQAAAAAEFXQgAAAABYwgAAAABZAgAAAABZQgAAAABZggAAAABBV0CAAAAAWMCAAAAAWQCAAAAAWUCAAAAAWYCAAAAAQUSAAByACATAAB1ACBaAABzACBbAAB0ACBgAAABACADEgAAcgAgWgAAcwAgYAAAAQAgAAAAAAABXQAAAFMCCxIAAGIAMBMAAGcAMFoAAGMAMFsAAGQAMFwAAGUAIF0AAGYAMF4AAGYAMF8AAGYAMGAAAGYAMGEAAGgAMGIAAGkAMBMxAQAAAAEyQAAAAAE0CAAAAAE1CAAAAAE2CAAAAAE3CAAAAAE4CAAAAAE5CAAAAAE6CAAAAAE7CAAAAAE8CAAAAAE9CAAAAAE-CAAAAAE_CAAAAAFACAAAAAFBCAAAAAFCCAAAAAFDCAAAAAFECAAAAAECAAAABQAgEgAAbQAgAwAAAAUAIBIAAG0AIBMAAGwAIAELAABxADAZAwAATwAgLgAATAAwLwAAAwAQMAAATAAwMQEAAAABMkAATQAhMwIARwAhNAgATgAhNQgATgAhNggATgAhNwgATgAhOAgATgAhOQgATgAhOggATgAhOwgATgAhPAgATgAhPQgATgAhPggATgAhPwgATgAhQAgATgAhQQgATgAhQggATgAhQwgATgAhRAgATgAhVwAASwAgAgAAAAUAIAsAAGwAIAIAAABqACALAABrACAXLgAAaQAwLwAAagAQMAAAaQAwMQEASAAhMkAATQAhMwIARwAhNAgATgAhNQgATgAhNggATgAhNwgATgAhOAgATgAhOQgATgAhOggATgAhOwgATgAhPAgATgAhPQgATgAhPggATgAhPwgATgAhQAgATgAhQQgATgAhQggATgAhQwgATgAhRAgATgAhFy4AAGkAMC8AAGoAEDAAAGkAMDEBAEgAITJAAE0AITMCAEcAITQIAE4AITUIAE4AITYIAE4AITcIAE4AITgIAE4AITkIAE4AIToIAE4AITsIAE4AITwIAE4AIT0IAE4AIT4IAE4AIT8IAE4AIUAIAE4AIUEIAE4AIUIIAE4AIUMIAE4AIUQIAE4AIRMxAQBVACEyQABWACE0CABXACE1CABXACE2CABXACE3CABXACE4CABXACE5CABXACE6CABXACE7CABXACE8CABXACE9CABXACE-CABXACE_CABXACFACABXACFBCABXACFCCABXACFDCABXACFECABXACETMQEAVQAhMkAAVgAhNAgAVwAhNQgAVwAhNggAVwAhNwgAVwAhOAgAVwAhOQgAVwAhOggAVwAhOwgAVwAhPAgAVwAhPQgAVwAhPggAVwAhPwgAVwAhQAgAVwAhQQgAVwAhQggAVwAhQwgAVwAhRAgAVwAhEzEBAAAAATJAAAAAATQIAAAAATUIAAAAATYIAAAAATcIAAAAATgIAAAAATkIAAAAAToIAAAAATsIAAAAATwIAAAAAT0IAAAAAT4IAAAAAT8IAAAAAUAIAAAAAUEIAAAAAUIIAAAAAUMIAAAAAUQIAAAAAQQSAABiADBaAABjADBcAABlACBgAABmADAAAQQAAG8AIBMxAQAAAAEyQAAAAAE0CAAAAAE1CAAAAAE2CAAAAAE3CAAAAAE4CAAAAAE5CAAAAAE6CAAAAAE7CAAAAAE8CAAAAAE9CAAAAAE-CAAAAAE_CAAAAAFACAAAAAFBCAAAAAFCCAAAAAFDCAAAAAFECAAAAAEEMQIAAAABUAEAAAABUQEAAAABUwAAAFMCAgAAAAEAIBIAAHIAIAMAAAAJACASAAByACATAAB2ACAGAAAACQAgCwAAdgAgMQIAWAAhUAEAVQAhUQEAVQAhUwAAYFMiBDECAFgAIVABAFUAIVEBAFUAIVMAAGBTIgIEBgIFAAMBAwABAQQHAAAAAAUFAAgYAAkZAAoaAAsbAAwAAAAAAAUFAAgYAAkZAAoaAAsbAAwBAwABAQMAAQUFABEYABIZABMaABQbABUAAAAAAAUFABEYABIZABMaABQbABUGAgEHCAEICwEJDAEKDQEMDwENEQQOEgUPFAEQFgQRFwYUGAEVGQEWGgQcHQcdHg0eHwIfIAIgIQIhIgIiIwIjJQIkJwQlKA4mKgInLAQoLQ8pLgIqLwIrMAQsMxAtNBY"
 }
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
@@ -70,8 +70,8 @@ export interface PrismaClientConstructor {
    * const prisma = new PrismaClient({
    *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
    * })
-   * // Fetch zero or more Users
-   * const users = await prisma.user.findMany()
+   * // Fetch zero or more Employees
+   * const employees = await prisma.employee.findMany()
    * ```
    * 
    * Read more in our [docs](https://pris.ly/d/client).
@@ -94,8 +94,8 @@ export interface PrismaClientConstructor {
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Users
- * const users = await prisma.user.findMany()
+ * // Fetch zero or more Employees
+ * const employees = await prisma.employee.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -188,7 +188,25 @@ export interface PrismaClient<
     extArgs: ExtArgs
   }>>
 
-    
+      /**
+   * `prisma.employee`: Exposes CRUD operations for the **Employee** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Employees
+    * const employees = await prisma.employee.findMany()
+    * ```
+    */
+  get employee(): Prisma.EmployeeDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.weeklyWages`: Exposes CRUD operations for the **WeeklyWages** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WeeklyWages
+    * const weeklyWages = await prisma.weeklyWages.findMany()
+    * ```
+    */
+  get weeklyWages(): Prisma.WeeklyWagesDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

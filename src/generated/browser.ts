@@ -17,4 +17,13 @@ import * as Prisma from './internal/prismaNamespaceBrowser'
 export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
-
+/**
+ * Model Employee
+ * 
+ */
+export type Employee = Prisma.EmployeeModel
+/**
+ * Model WeeklyWages
+ * 
+ */
+export type WeeklyWages = Prisma.WeeklyWagesModel

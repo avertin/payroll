@@ -1,0 +1,37 @@
+enum EmployeeLevel {
+  APPRENTICE
+  JOURNEYWORKER
+}
+
+model Employee {
+  id          Int           @id // business id from CSV employee_id
+  name        String
+  occupation  String
+  level       EmployeeLevel
+  weeklyWages WeeklyWages[]
+}
+
+model WeeklyWages {
+  id            String   @id // unique id (e.g. uuid)
+  weekEnding    DateTime
+  employeeId    Int
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@unique([employeeId, weekEnding])
+  monStHours    Float
+  tueStHours    Float
+  wedStHours    Float
+  thuStHours    Float
+  friStHours    Float
+  satStHours    Float
+  sunStHours    Float
+  monOtHours    Float
+  tueOtHours    Float
+  wedOtHours    Float
+  thuOtHours    Float
+  friOtHours    Float
+  satOtHours    Float
+  sunOtHours    Float
+  standardRate  Float
+  overtimeRate  Float
+  benefitsRate  Float
+}

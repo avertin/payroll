@@ -8,4 +8,6 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Employee'
+export type * from './models/WeeklyWages'
 export type * from './commonInputTypes'

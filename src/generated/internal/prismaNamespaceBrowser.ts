@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-
+  Employee: 'Employee',
+  WeeklyWages: 'WeeklyWages'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -65,4 +66,48 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const EmployeeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  occupation: 'occupation',
+  level: 'level'
+} as const
+
+export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const WeeklyWagesScalarFieldEnum = {
+  id: 'id',
+  weekEnding: 'weekEnding',
+  employeeId: 'employeeId',
+  monStHours: 'monStHours',
+  tueStHours: 'tueStHours',
+  wedStHours: 'wedStHours',
+  thuStHours: 'thuStHours',
+  friStHours: 'friStHours',
+  satStHours: 'satStHours',
+  sunStHours: 'sunStHours',
+  monOtHours: 'monOtHours',
+  tueOtHours: 'tueOtHours',
+  wedOtHours: 'wedOtHours',
+  thuOtHours: 'thuOtHours',
+  friOtHours: 'friOtHours',
+  satOtHours: 'satOtHours',
+  sunOtHours: 'sunOtHours',
+  standardRate: 'standardRate',
+  overtimeRate: 'overtimeRate',
+  benefitsRate: 'benefitsRate'
+} as const
+
+export type WeeklyWagesScalarFieldEnum = (typeof WeeklyWagesScalarFieldEnum)[keyof typeof WeeklyWagesScalarFieldEnum]
+
+
+export const SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+} as const
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 

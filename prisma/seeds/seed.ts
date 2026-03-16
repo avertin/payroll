@@ -11,9 +11,10 @@ if (isProduction && !allowSeedInProduction) {
   process.exit(1);
 }
 
+import { seedPayroll } from "./payrollSeed";
+
 async function main() {
-  // Add seed functions from prisma/seeds/*.ts and run in dependency order, e.g.:
-  // await seedUsers();
+  await seedPayroll({ bypassValidation: true });
 }
 
 main()
