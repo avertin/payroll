@@ -1,12 +1,15 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { cn } from "@/shared/utils";
+import { Button } from "@/shared/components/button";
 import {
   LoaderIcon,
   FileUpIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  TableIcon,
 } from "lucide-react";
 import {
   PAYROLL_UPLOAD_VALIDATION_CHECKS,
@@ -190,9 +193,7 @@ export function PayrollUploadForm() {
         <span className="text-sm">
           <span className="font-medium">Skip invalid rows</span>
           <span className="ml-1 text-muted-foreground">
-            If selected and validation fails, valid rows are still inserted. You
-            still get HTTP 400 with the number of rows added and all validation
-            errors.
+            If selected and validation fails, valid rows are still inserted.
           </span>
         </span>
       </label>
@@ -243,15 +244,28 @@ export function PayrollUploadForm() {
         )}
       </div>
 
+      {status === "error" &&
+        errors.length > 0 &&
+        rowsAdded !== null &&
+        rowsAdded > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {rowsAdded} row{rowsAdded !== 1 ? "s" : ""} successfully inserted.
+            </p>
+            <Button
+              nativeButton={false}
+              render={<Link href="/payroll" />}
+              className="gap-2"
+            >
+              <TableIcon className="size-4" />
+              View successfully uploaded data
+            </Button>
+          </div>
+        )}
+
       {status === "error" && errors.length > 0 && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4">
-          <p className="mb-2 font-medium text-destructive">Validation failed</p>
-          {rowsAdded !== null && rowsAdded > 0 && (
-            <p className="mb-2 text-sm text-muted-foreground">
-              {rowsAdded} row{rowsAdded !== 1 ? "s" : ""} inserted (invalid rows
-              skipped).
-            </p>
-          )}
+          <p className="mb-2 font-medium text-destructive">Invalid rows</p>
           <p className="mb-3 text-xs text-muted-foreground">
             A row can have multiple validation errors; all are listed below.
           </p>

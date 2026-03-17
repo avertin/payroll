@@ -14,6 +14,7 @@ A Next.js app with TypeScript, App Router, shadcn/ui, Prisma (SQLite), ESLint, P
 ```bash
 npm install
 npm run db:generate   # generate Prisma client
+npm run db:push
 npm run dev
 ```
 
