@@ -1,210 +1,74 @@
-# Implementation log
+# Payroll Dashboard — Implementation Notes
 
-Use this file to record implementation notes, decisions, and progress as you work on the project.
+This document explains how the take-home assignment was approached and what was built. The work was completed within the 3-hour time limit.
 
 ---
 
-## Step 1
+## What I Built (mapped to the assignment)
 
-Define data model and seed the DB with data from the CSV. Having a clean data model forces fluency and familiarity with the data and good organization.
+### 1. Summary statistics
 
-Table - Employee
-name string
-id unique, number
-occupation string
-level = APPRENTICE or JOURNEYWORKER
+- Unique employee count
+- Min, max, and average for standard rate, overtime rate, and benefits rate
+- Cumulative payroll spend (standard + overtime wages; benefits are tracked separately)
+- Percentage of total hours attributable to apprentices
+- Total hours on project
 
-Validations: All rows have name + employee_id consistent, validate on input
+All values are computed in a single GET API so the UI and any future consumers share one source of truth. Keep these aggregates out of the database since they aren't expensive to compute.Take a backend for frontend approach with the api since there are no consumers of the API outside of this application. If needed, caching can be added later for these computations.
 
-Table - Weekly Wages
-id unique, nano
-ending data date
-employeeId = foreign key to Employee table
-monStHours, float
-tueStHours, float
-...
-sunStHours, float
-monOtHours, float
-...
-sunOtHours, float
-standardRate, float
-overtimeRate, float
-benefitsRate, float
+### 2. Employee statistical overviews
 
-Validations: all hours are greater than 0, st hours are less than or equal to 40, overtime rate is 1.5 the standard_rate
+The **By Employee** view focuses on per-employee metrics:
 
-Use payroll_data.csv to populate the seed script, for now fail the seed if the validation does not pass. Make validation and formatting of the csv separate helper functions inside a new payroll feature so they can be reused later.
+- **Table:** Total pay, total hours, average weekly hours, max/min single-week hours, % overtime, number of weeks worked, and a **rate variance** flag (see Anomaly detection). Rows are expandable to drill into weekly detail.
 
-Initial dump of validation:
-Payroll validation failed:
-Row 3: Sum of standard hours (46.3) must be <= 40
-Row 8: Sum of standard hours (46.4) must be <= 40
-Row 11: overtime*rate (135.3) must be 1.5 * standard*rate (90.19) = 135.285
-Row 14: Sum of standard hours (45.7) must be <= 40
-Row 17: Sum of standard hours (46) must be <= 40
-Row 19: Sum of standard hours (42.7) must be <= 40
-Row 20: Sum of standard hours (41.9) must be <= 40
-Row 21: Sum of standard hours (46.3) must be <= 40
-Row 22: Sum of standard hours (41.2) must be <= 40
-Row 38: Sum of standard hours (41.300000000000004) must be <= 40
-Row 40: Sum of standard hours (48.5) must be <= 40
-Row 45: Sum of standard hours (42.4) must be <= 40
-Row 59: Sum of standard hours (42.9) must be <= 40
-Row 66: Sum of standard hours (59.6) must be <= 40
-Row 69: Sum of standard hours (43.800000000000004) must be <= 40
-Row 70: Sum of standard hours (50.199999999999996) must be <= 40
-Row 73: Employee 1022 has inconsistent name/occupation/level across rows (expected name=Harry Botsford, occupation=Sheet Metal Worker, level=JOURNEYWORKER)
-Row 74: Sum of standard hours (41.699999999999996) must be <= 40
-Row 78: Sum of standard hours (40.8) must be <= 40
-Row 80: Sum of standard hours (40.300000000000004) must be <= 40
-Row 88: Employee 1020 has inconsistent name/occupation/level across rows (expected name=Roma Kohler, occupation=Ironworker, level=JOURNEYWORKER)
-Row 90: Sum of standard hours (42.50000000000001) must be <= 40
-Row 98: Sum of standard hours (46.900000000000006) must be <= 40
-Row 105: Sum of standard hours (43.5) must be <= 40
-Row 108: Employee 1021 has inconsistent name/occupation/level across rows (expected name=Arturo Graham-Monahan, occupation=Pipefitter, level=JOURNEYWORKER)
-Row 111: Sum of standard hours (42.7) must be <= 40
-Row 112: Sum of standard hours (40.9) must be <= 40
-Row 114: Sum of standard hours (43.39999999999999) must be <= 40
-Row 136: Sum of standard hours (43.300000000000004) must be <= 40
-Row 137: overtime_rate (23.89) must be 1.5 * standard_rate (15.92) = 23.88
-Row 151: Sum of standard hours (41.6) must be <= 40
-Row 159: Sum of standard hours (43.9) must be <= 40
-Row 160: Sum of standard hours (40.800000000000004) must be <= 40
-Row 173: Sum of standard hours (44.9) must be <= 40
-Row 177: Employee 1014 has inconsistent name/occupation/level across rows (expected name=Luisa Robel, occupation=Carpenter, level=JOURNEYWORKER)
-Row 181: Sum of standard hours (43.1) must be <= 40
-Row 191: Sum of standard hours (41.7) must be <= 40
-Row 215: Sum of standard hours (43.6) must be <= 40
-Row 236: Employee 1017 has inconsistent name/occupation/level across rows (expected name=Eda Rogahn, occupation=Carpenter, level=JOURNEYWORKER)
-Row 242: Sum of standard hours (45.49999999999999) must be <= 40
-Row 247: Sum of standard hours (41.800000000000004) must be <= 40
-Row 251: Sum of standard hours (41.9) must be <= 40
-Row 252: Sum of standard hours (44.99999999999999) must be <= 40
-Row 258: overtime_rate (98.92) must be 1.5 \* standard_rate (65.94) = 98.91
-Row 265: Sum of standard hours (44.1) must be <= 40
-Row 268: Sum of standard hours (40.6) must be <= 40
-Row 274: Sum of standard hours (48.5) must be <= 40
+Wage rate min/max/avg (standard, overtime, benefits) are shown on the All view so both views stay focused and comparable.
 
-Add boolean to keep validations for now but bypass the logic during seed
+### 3. Anomaly detection
 
-## Step 2
+- **Data cleanliness**: The focus in on cleaning clear and obvious issues with the data before it even has a chance to enter the system. Robust validation is added on csv upload. See UI for specific validation criteria.
+- **Rate variance:** For each employee, the system flags whether their standard, overtime, or benefits rate changed across any two weeks. That can indicate data entry errors or legitimate changes (e.g. raises). The By Employee table shows this as a column, and the summary card shows how many employees have at least one rate change.
+- This gives the project manager a concrete, explainable signal to review. Other anomaly logic (e.g. “suspiciously high/low” wages or hours) would require some additional, more granular UI views into the week by week, and even day by day activity. Intentionally chose to stay high level until establishing clearer rules or thresholds from the business (see _Questions for a production manager_, below).
 
-API & presentation layer.
+### 4. Stretch / extras
 
-P0:
-Add a GET api route for payroll to return all the payroll data w/the following calculated additions:
+- **Database and backend:** Prisma schema (Employee + WeeklyWages), SQLite. CSV parsing and validation live in the payroll feature and are reused everywhere (see below).
+- **File upload:** The primary way to load data is the **Upload payroll** flow (`/payroll/upload`). Drag-and-drop accepts a single CSV; the same validation used in the codebase runs on upload. If any row fails, the API returns 400 with error details and no rows are inserted (unless intentional skip invalid rows flag is set in the UI); on success it returns 200 with the number of rows added. A seed script exists for local development only; in a final implementation the upload UI replaces the need for seeding.
+- **Validation rules:** Headers must match expected columns; employee_id and types validated; same employee_id must have consistent name, occupation, and level; week_ending valid date; hours non-negative; standard hours ≤ 8 per day and sum per week ≤ 40; standard + OT per day ≤ 24; overtime_rate = 1.5 × standard_rate (within rounding); no duplicate (employee_id, week_ending).
+- **Tests:** Unit tests for report aggregation and for validation logic.
 
-- per week per employee:
-  - total st hrs
-  - total ot hrs
-  - total st wage
-  - total ot wage
-  - total wage = (total st wage + total ot wage)
-- grand totals
-  - total number of unique employees
-  - Average wage rates and benefits rates
-  - Cumulative payroll spend
-  - Percentage of total hours attributable to apprentices
+---
 
-Show the underlying data in a table. Allow the table to be grouped by employee or by payroll week. Add dropdown filters for level and occupation. Add a search by name. These should be AND type filters / search.
+## Approach and prioritization
 
-Also include the grand totals as metric cards at the top.
+- **Data model first:** Defined Employee and WeeklyWages and shared validation so the rest of the app could assume clean data and one place to change rules.
+- **Reuse:** CSV parsing and validation are shared between the seed script and the upload endpoint so behavior is consistent and testable.
+- **Incremental scope:** Implemented summary stats and the main table, then the By Employee view and rate-variance flagging, then upload and the extra validation rules.
 
-Use tanstack table for the grouping, filters, etc business logic of the table.
+---
 
-P1: Split views by agg level
-All -
+## Validation and correctness
 
-- Cards:
-  - existing
-  - total hours on project
-- Table - existing, group by none
-  By Employee
-- Cards:
-  - Maximum, minimum, and average hours per day
-  - Maximum, minimum, and average wage rates (standard, overtime, benefits)
-  - Maximum, minimum, and average %OT
-- Table:
-  - total all time pay for an employee
-  - total hours
-  - avg weekly hours for an employee
-  - option to expand row to drill into weekly details
-  - Max single-week hours
-  - Min single-week hours
-  - % OT - Number of weeks worked
-  - Rate variance, flag w/boolean if their wage changed
+Grand totals (unique employees, total pay, % apprentice hours, min/max/avg rates) were cross-checked against a separate tool (Tableau) to confirm the aggregates.
 
-Stretch goals:
-add nuqs for filtering, make filters apply to the tables and the cards
+---
 
-## Step 3
+## Questions for a production manager / next steps
 
-File upload + validation
+To turn this into a more valuable product, I’d want to:
 
-In the top right, add a button for "Upload payroll". Go to a new page, payroll/upload. Add a new endpoint which accepts as single CSV files. Reuse the same logic from the seed data helpers for the csv. DO NOT bypass validation. If validation fails, return a 400 with the details of the failure. In addition to the existing validations, add the following:
+1. **Review validations with a production manager.** Have them review the current rules (standard hours ≤ 40, OT = 1.5× standard, duplicate rows, etc.) and confirm what should be hard errors vs. warnings, and whether any rules are missing.
+2. **Define “suspicious” for wages and hours.** Understand how to detect anomalies such as:
+   - Way too low or way too high wage (e.g. vs. role, vs. employee history, or vs. prevailing wage)
+   - Way too many or way too few hours in a week or on a single day  
+     Thresholds or rules could then be implemented and surfaced in the UI.
+3. **Understand useful granularity.** Learn what level of detail they actually use (e.g. week vs. day, by trade vs. by level) so the dashboards align with their workflows.
+4. **Treat this as a proof of concept and do user research.** Run short user interviews: watch people complete real tasks with the tool, identify their jobs-to-be-done, and map the questions the tool answers (and the metrics it shows) directly to those workflows. Then refine the UI and anomaly signals based on that.
 
-- more hours in a single day than exist
-- no more than 8 st hours in a day
-- look for duplicate rows and do not add duplicates, flag as a validation issue
-  On success, 200 w/number of rows successfully added.
+---
 
-For the page UI, have a drag and drop UI section. Allow 1 file at a time and only csv. When a file has been added, minimze the height and show a loading spinner. One response -
-show errors OR show success message w/number of rows added.
+## Given more time (technical)
 
-## Step 4
-
-Clean up and validation
-Rebuild tables in tableau to confirm aggs all look correct
-
-all
-unique employees: 23
-total pay: 832,350 (ot pay + st pay + ben pay)
-% apprent: 2485 / 7686 = .32331511839
-
-standard rate:
-
-- min: 15.92
-- max: 102.5
-- avg: 43.71
-
-overtime rate:
-
-- min: 23.89
-- max: 153.8
-- avg: 65.56
-
-benefits rate:
-
-- min: 6.69
-- max: 39.68
-- avg: 16.39
-
-By employee
-hours per day:
-
-- min
-- max
-- avg
-
-% OT
-
-- min
-- max
-- avg
-
-clean up docs
-amy final UI tweaks and improvements
-
-UI tweaks
-
-- move standard, ot, and ben rate (min, max, avg) cards to the all page
-
-on the by employee
-
-- keep % OT & hours per day
-- add hours per week min, max, avg
-- add number of employees w/wage rate changes (this should look across ot, st, and ben)
-
-## Notes
-
-(Add your implementation notes here.)
+- **Anomalies:** Row-level flags for suspicious wages/hours once thresholds or rules are defined; drill-down from rate variance into the specific weeks and rates that changed.
+- **Data quality:** Stricter occupation consistency (e.g. for prevailing-wage lookups); optional column mapping for CSV uploads; streaming for very large files.
+- **UX:** Correct mistakes on upload or after (e.g. edit/correct rows); richer visualizations to spot anomalies; optional AI-assisted anomaly detection.
