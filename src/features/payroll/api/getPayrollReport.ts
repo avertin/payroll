@@ -99,14 +99,10 @@ export async function getPayrollReport(): Promise<PayrollReportDto> {
 
   const uniqueEmployeeIds = new Set(rows.map((r) => r.employeeId));
   const n = rows.length;
-  const avgStandardRate =
-    n === 0 ? 0 : rows.reduce((a, r) => a + r.standardRate, 0) / n;
-  const avgOvertimeRate =
-    n === 0 ? 0 : rows.reduce((a, r) => a + r.overtimeRate, 0) / n;
-  const avgBenefitsRate =
-    n === 0 ? 0 : rows.reduce((a, r) => a + r.benefitsRate, 0) / n;
-  const cumulativePayrollSpend = rows.reduce((a, r) => a + r.totalWage, 0);
-
+  const standardRates = rows.map((r) => r.standardRate);
+  const overtimeRates = rows.map((r) => r.overtimeRate);
+  const benefitsRates = rows.map((r) => r.benefitsRate);
+  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
   let totalHoursAll = 0;
   let totalHoursApprentices = 0;
   for (const r of rows) {
@@ -114,16 +110,20 @@ export async function getPayrollReport(): Promise<PayrollReportDto> {
     totalHoursAll += hrs;
     if (r.level === "APPRENTICE") totalHoursApprentices += hrs;
   }
-  const pctHoursFromApprentices =
-    totalHoursAll === 0 ? 0 : (totalHoursApprentices / totalHoursAll) * 100;
-
   const grandTotals: PayrollGrandTotalsDto = {
     uniqueEmployeeCount: uniqueEmployeeIds.size,
-    avgStandardRate,
-    avgOvertimeRate,
-    avgBenefitsRate,
-    cumulativePayrollSpend,
-    pctHoursFromApprentices,
+    standardRateMin: n === 0 ? 0 : Math.min(...standardRates),
+    standardRateMax: n === 0 ? 0 : Math.max(...standardRates),
+    avgStandardRate: n === 0 ? 0 : sum(standardRates) / n,
+    overtimeRateMin: n === 0 ? 0 : Math.min(...overtimeRates),
+    overtimeRateMax: n === 0 ? 0 : Math.max(...overtimeRates),
+    avgOvertimeRate: n === 0 ? 0 : sum(overtimeRates) / n,
+    benefitsRateMin: n === 0 ? 0 : Math.min(...benefitsRates),
+    benefitsRateMax: n === 0 ? 0 : Math.max(...benefitsRates),
+    avgBenefitsRate: n === 0 ? 0 : sum(benefitsRates) / n,
+    cumulativePayrollSpend: rows.reduce((a, r) => a + r.totalWage, 0),
+    pctHoursFromApprentices:
+      totalHoursAll === 0 ? 0 : (totalHoursApprentices / totalHoursAll) * 100,
     totalHoursOnProject: totalHoursAll,
   };
 
@@ -210,9 +210,7 @@ export async function getPayrollReportByEmployee(): Promise<PayrollByEmployeeRep
 
   const rows: PayrollByEmployeeRowDto[] = [];
   const allHoursPerDay: number[] = [];
-  const allStandardRates: number[] = [];
-  const allOvertimeRates: number[] = [];
-  const allBenefitsRates: number[] = [];
+  const allHoursPerWeek: number[] = weekRows.map((r) => r.totalHrs);
   const allPctOt: number[] = [];
 
   for (const [employeeId, emp] of byEmployee) {
@@ -229,16 +227,13 @@ export async function getPayrollReportByEmployee(): Promise<PayrollByEmployeeRep
       totalHrsAll === 0
         ? 0
         : (weeks.reduce((a, w) => a + w.totalOtHrs, 0) / totalHrsAll) * 100;
-    const standardRates = [...new Set(weeks.map((w) => w.standardRate))];
     const rateVariance =
-      standardRates.length > 1 ||
-      new Set(weeks.map((w) => w.overtimeRate)).size > 1;
+      new Set(weeks.map((w) => w.standardRate)).size > 1 ||
+      new Set(weeks.map((w) => w.overtimeRate)).size > 1 ||
+      new Set(weeks.map((w) => w.benefitsRate)).size > 1;
 
     for (const w of weeks) {
       allHoursPerDay.push(w.hoursPerDay);
-      allStandardRates.push(w.standardRate);
-      allOvertimeRates.push(w.overtimeRate);
-      allBenefitsRates.push(w.benefitsRate);
       allPctOt.push(w.pctOt);
     }
 
@@ -259,24 +254,21 @@ export async function getPayrollReportByEmployee(): Promise<PayrollByEmployeeRep
   }
 
   const n = allHoursPerDay.length;
+  const nWeeks = allHoursPerWeek.length;
   const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
+  const employeesWithRateChanges = rows.filter((r) => r.rateVariance).length;
 
   const grandTotals: PayrollByEmployeeGrandTotalsDto = {
     hoursPerDayMin: n === 0 ? 0 : Math.min(...allHoursPerDay),
     hoursPerDayMax: n === 0 ? 0 : Math.max(...allHoursPerDay),
     hoursPerDayAvg: n === 0 ? 0 : sum(allHoursPerDay) / n,
-    standardRateMin: n === 0 ? 0 : Math.min(...allStandardRates),
-    standardRateMax: n === 0 ? 0 : Math.max(...allStandardRates),
-    standardRateAvg: n === 0 ? 0 : sum(allStandardRates) / n,
-    overtimeRateMin: n === 0 ? 0 : Math.min(...allOvertimeRates),
-    overtimeRateMax: n === 0 ? 0 : Math.max(...allOvertimeRates),
-    overtimeRateAvg: n === 0 ? 0 : sum(allOvertimeRates) / n,
-    benefitsRateMin: n === 0 ? 0 : Math.min(...allBenefitsRates),
-    benefitsRateMax: n === 0 ? 0 : Math.max(...allBenefitsRates),
-    benefitsRateAvg: n === 0 ? 0 : sum(allBenefitsRates) / n,
+    hoursPerWeekMin: nWeeks === 0 ? 0 : Math.min(...allHoursPerWeek),
+    hoursPerWeekMax: nWeeks === 0 ? 0 : Math.max(...allHoursPerWeek),
+    hoursPerWeekAvg: nWeeks === 0 ? 0 : sum(allHoursPerWeek) / nWeeks,
     pctOtMin: n === 0 ? 0 : Math.min(...allPctOt),
     pctOtMax: n === 0 ? 0 : Math.max(...allPctOt),
     pctOtAvg: n === 0 ? 0 : sum(allPctOt) / n,
+    employeesWithRateChanges,
   };
 
   return { rows, grandTotals };

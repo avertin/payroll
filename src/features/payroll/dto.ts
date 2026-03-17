@@ -76,8 +76,14 @@ export interface PayrollRowDto {
 /** Grand totals for the payroll report (All view). */
 export interface PayrollGrandTotalsDto {
   uniqueEmployeeCount: number;
+  standardRateMin: number;
+  standardRateMax: number;
   avgStandardRate: number;
+  overtimeRateMin: number;
+  overtimeRateMax: number;
   avgOvertimeRate: number;
+  benefitsRateMin: number;
+  benefitsRateMax: number;
   avgBenefitsRate: number;
   cumulativePayrollSpend: number;
   pctHoursFromApprentices: number;
@@ -112,18 +118,13 @@ export interface PayrollByEmployeeGrandTotalsDto {
   hoursPerDayMin: number;
   hoursPerDayMax: number;
   hoursPerDayAvg: number;
-  standardRateMin: number;
-  standardRateMax: number;
-  standardRateAvg: number;
-  overtimeRateMin: number;
-  overtimeRateMax: number;
-  overtimeRateAvg: number;
-  benefitsRateMin: number;
-  benefitsRateMax: number;
-  benefitsRateAvg: number;
+  hoursPerWeekMin: number;
+  hoursPerWeekMax: number;
+  hoursPerWeekAvg: number;
   pctOtMin: number;
   pctOtMax: number;
   pctOtAvg: number;
+  employeesWithRateChanges: number;
 }
 
 export interface PayrollByEmployeeReportDto {

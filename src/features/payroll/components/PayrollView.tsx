@@ -18,9 +18,8 @@ import {
 } from "@/shared/components/table";
 import { Button } from "@/shared/components/button";
 import type { PayrollReportDto, PayrollByEmployeeReportDto } from "../dto";
-import { PayrollGrandTotalsCards } from "./PayrollGrandTotalsCards";
+import { PayrollSummaryCards } from "./PayrollSummaryCards";
 import { PayrollTable as AllPayrollTable } from "./PayrollTable";
-import { PayrollByEmployeeCards } from "./PayrollByEmployeeCards";
 import { PayrollByEmployeeTable } from "./PayrollByEmployeeTable";
 import { UploadIcon } from "lucide-react";
 
@@ -135,29 +134,28 @@ export function PayrollView() {
         </Link>
       </div>
 
+      {reportAll && reportByEmployee && (
+        <PayrollSummaryCards
+          grandTotalsAll={reportAll.grandTotals}
+          grandTotalsByEmployee={reportByEmployee.grandTotals}
+        />
+      )}
+
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full max-w-[400px] grid-cols-2">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="byEmployee">By Employee</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-6">
+        <TabsContent value="all" className="mt-6">
           {reportAll && (
-            <>
-              <PayrollGrandTotalsCards grandTotals={reportAll.grandTotals} />
-              <AllPayrollTable rows={reportAll.rows} groupByNoneOnly />
-            </>
+            <AllPayrollTable rows={reportAll.rows} groupByNoneOnly />
           )}
         </TabsContent>
 
-        <TabsContent value="byEmployee" className="space-y-6">
+        <TabsContent value="byEmployee" className="mt-6">
           {reportByEmployee && (
-            <>
-              <PayrollByEmployeeCards
-                grandTotals={reportByEmployee.grandTotals}
-              />
-              <PayrollByEmployeeTable rows={reportByEmployee.rows} />
-            </>
+            <PayrollByEmployeeTable rows={reportByEmployee.rows} />
           )}
         </TabsContent>
       </Tabs>

@@ -79,6 +79,7 @@ function loadCsvAndExpected(csvPath: string) {
   const standardRates: number[] = [];
   const overtimeRates: number[] = [];
   const benefitsRates: number[] = [];
+  const hoursPerWeek: number[] = [];
 
   for (const w of weeklyWages) {
     const stHrs = sumHours(
@@ -97,6 +98,7 @@ function loadCsvAndExpected(csvPath: string) {
     totalStOtPay += stPay + otPay;
     totalBenPay += benPay;
     totalHoursAll += totalHrs;
+    hoursPerWeek.push(totalHrs);
 
     const emp = employeeById.get(w.employeeId);
     if (emp?.level === "APPRENTICE") totalHoursApprentices += totalHrs;
@@ -107,7 +109,28 @@ function loadCsvAndExpected(csvPath: string) {
   }
 
   const n = standardRates.length;
+  const nWeeks = hoursPerWeek.length;
   const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
+
+  const byEmployeeRates = new Map<
+    number,
+    { st: Set<number>; ot: Set<number>; ben: Set<number> }
+  >();
+  for (const w of weeklyWages) {
+    let e = byEmployeeRates.get(w.employeeId);
+    if (!e) {
+      e = { st: new Set(), ot: new Set(), ben: new Set() };
+      byEmployeeRates.set(w.employeeId, e);
+    }
+    e.st.add(w.standardRate);
+    e.ot.add(w.overtimeRate);
+    e.ben.add(w.benefitsRate);
+  }
+  let employeesWithRateChanges = 0;
+  for (const e of byEmployeeRates.values()) {
+    if (e.st.size > 1 || e.ot.size > 1 || e.ben.size > 1)
+      employeesWithRateChanges++;
+  }
 
   const expected = {
     uniqueEmployeeCount: employees.length,
@@ -126,6 +149,10 @@ function loadCsvAndExpected(csvPath: string) {
     benefitsRateMin: n === 0 ? 0 : Math.min(...benefitsRates),
     benefitsRateMax: n === 0 ? 0 : Math.max(...benefitsRates),
     benefitsRateAvg: n === 0 ? 0 : sum(benefitsRates) / n,
+    hoursPerWeekMin: nWeeks === 0 ? 0 : Math.min(...hoursPerWeek),
+    hoursPerWeekMax: nWeeks === 0 ? 0 : Math.max(...hoursPerWeek),
+    hoursPerWeekAvg: nWeeks === 0 ? 0 : sum(hoursPerWeek) / nWeeks,
+    employeesWithRateChanges,
     wageRowCount: weeklyWages.length,
     validationErrors: errors.length,
   };
@@ -225,7 +252,6 @@ describe("getPayrollReport aggregations vs payroll_data.csv", () => {
       `Total hours: ${expected.totalHoursAll.toFixed(1)} | Apprentice hours: ${expected.totalHoursApprentices.toFixed(1)}`,
       `Standard rate: min ${expected.standardRateMin} max ${expected.standardRateMax} avg ${expected.standardRateAvg.toFixed(2)}`,
     ].join("\n");
-    // eslint-disable-next-line no-console
     console.log(report);
     expect(inserted).toBeLessThanOrEqual(csvRows);
     expect(inserted + errorCount).toBeGreaterThanOrEqual(csvRows);
@@ -260,7 +286,7 @@ describe("getPayrollReport aggregations vs payroll_data.csv", () => {
   });
 
   describe("API vs CSV-derived expected (with seeded DB)", () => {
-    it("getPayrollReport grand totals: unique employees, hours, % apprentice, avg rates", async () => {
+    it("getPayrollReport grand totals: unique employees, hours, % apprentice, rate min/max/avg", async () => {
       const report = await getPayrollReport();
 
       expect(report.grandTotals.uniqueEmployeeCount).toBe(
@@ -274,12 +300,36 @@ describe("getPayrollReport aggregations vs payroll_data.csv", () => {
         expected.pctHoursFromApprentices,
         2
       );
+      expect(report.grandTotals.standardRateMin).toBeCloseTo(
+        expected.standardRateMin,
+        2
+      );
+      expect(report.grandTotals.standardRateMax).toBeCloseTo(
+        expected.standardRateMax,
+        2
+      );
       expect(report.grandTotals.avgStandardRate).toBeCloseTo(
         expected.standardRateAvg,
         2
       );
+      expect(report.grandTotals.overtimeRateMin).toBeCloseTo(
+        expected.overtimeRateMin,
+        2
+      );
+      expect(report.grandTotals.overtimeRateMax).toBeCloseTo(
+        expected.overtimeRateMax,
+        2
+      );
       expect(report.grandTotals.avgOvertimeRate).toBeCloseTo(
         expected.overtimeRateAvg,
+        2
+      );
+      expect(report.grandTotals.benefitsRateMin).toBeCloseTo(
+        expected.benefitsRateMin,
+        2
+      );
+      expect(report.grandTotals.benefitsRateMax).toBeCloseTo(
+        expected.benefitsRateMax,
         2
       );
       expect(report.grandTotals.avgBenefitsRate).toBeCloseTo(
@@ -301,19 +351,16 @@ describe("getPayrollReport aggregations vs payroll_data.csv", () => {
       );
     });
 
-    it("getPayrollReportByEmployee grand totals: rate min/max/avg match CSV", async () => {
+    it("getPayrollReportByEmployee grand totals: hours per week, employees with rate changes", async () => {
       const byEmployee = await getPayrollReportByEmployee();
       const gt = byEmployee.grandTotals;
 
-      expect(gt.standardRateMin).toBeCloseTo(expected.standardRateMin, 2);
-      expect(gt.standardRateMax).toBeCloseTo(expected.standardRateMax, 2);
-      expect(gt.standardRateAvg).toBeCloseTo(expected.standardRateAvg, 2);
-      expect(gt.overtimeRateMin).toBeCloseTo(expected.overtimeRateMin, 2);
-      expect(gt.overtimeRateMax).toBeCloseTo(expected.overtimeRateMax, 2);
-      expect(gt.overtimeRateAvg).toBeCloseTo(expected.overtimeRateAvg, 2);
-      expect(gt.benefitsRateMin).toBeCloseTo(expected.benefitsRateMin, 2);
-      expect(gt.benefitsRateMax).toBeCloseTo(expected.benefitsRateMax, 2);
-      expect(gt.benefitsRateAvg).toBeCloseTo(expected.benefitsRateAvg, 2);
+      expect(gt.hoursPerWeekMin).toBeCloseTo(expected.hoursPerWeekMin, 2);
+      expect(gt.hoursPerWeekMax).toBeCloseTo(expected.hoursPerWeekMax, 2);
+      expect(gt.hoursPerWeekAvg).toBeCloseTo(expected.hoursPerWeekAvg, 2);
+      expect(gt.employeesWithRateChanges).toBe(
+        expected.employeesWithRateChanges
+      );
     });
   });
 });
