@@ -113,8 +113,26 @@ Also include the grand totals as metric cards at the top.
 Use tanstack table for the grouping, filters, etc business logic of the table.
 
 P1: Split views by agg level
-All - - Cards: - existing - total hours on project - Table - existing, group by none
-By Employee - Cards: - Maximum, minimum, and average hours per day - Maximum, minimum, and average wage rates (standard, overtime, benefits) - Maximum, minimum, and average %OT - Table: - total all time pay for an employee - avg weekly hours for an employee - option to expand row to drill into weekly details - Max single-week hours - Min single-week hours - % OT - Number of weeks worked - Rate variance, flag w/boolean if their wage changed
+All -
+
+- Cards:
+  - existing
+  - total hours on project
+- Table - existing, group by none
+  By Employee
+- Cards:
+  - Maximum, minimum, and average hours per day
+  - Maximum, minimum, and average wage rates (standard, overtime, benefits)
+  - Maximum, minimum, and average %OT
+- Table:
+  - total all time pay for an employee
+  - total hours
+  - avg weekly hours for an employee
+  - option to expand row to drill into weekly details
+  - Max single-week hours
+  - Min single-week hours
+  - % OT - Number of weeks worked
+  - Rate variance, flag w/boolean if their wage changed
 
 Stretch goals:
 add nuqs for filtering, make filters apply to the tables and the cards
@@ -132,6 +150,60 @@ In the top right, add a button for "Upload payroll". Go to a new page, payroll/u
 
 For the page UI, have a drag and drop UI section. Allow 1 file at a time and only csv. When a file has been added, minimze the height and show a loading spinner. One response -
 show errors OR show success message w/number of rows added.
+
+## Step 4
+
+Clean up and validation
+Rebuild tables in tableau to confirm aggs all look correct
+
+all
+unique employees: 23
+total pay: 832,350 (ot pay + st pay + ben pay)
+% apprent: 2485 / 7686 = .32331511839
+
+standard rate:
+
+- min: 15.92
+- max: 102.5
+- avg: 43.71
+
+overtime rate:
+
+- min: 23.89
+- max: 153.8
+- avg: 65.56
+
+benefits rate:
+
+- min: 6.69
+- max: 39.68
+- avg: 16.39
+
+By employee
+hours per day:
+
+- min
+- max
+- avg
+
+% OT
+
+- min
+- max
+- avg
+
+clean up docs
+amy final UI tweaks and improvements
+
+UI tweaks
+
+- move standard, ot, and ben rate (min, max, avg) cards to the all page
+
+on the by employee
+
+- keep % OT & hours per day
+- add hours per week min, max, avg
+- add number of employees w/wage rate changes (this should look across ot, st, and ben)
 
 ## Notes
 

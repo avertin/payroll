@@ -4,12 +4,25 @@ import type {
   ValidatedWeeklyWages,
   EmployeeLevel,
 } from "../dto";
+import { EXPECTED_PAYROLL_CSV_HEADERS } from "../uploadValidationChecks";
 
 const LEVELS: EmployeeLevel[] = ["APPRENTICE", "JOURNEYWORKER"];
 const OT_MULTIPLIER = 1.5;
 /** Tolerance for overtime = 1.5 * standard (CSV uses rounded rates). */
 const FLOAT_TOLERANCE = 0.02;
 const MAX_ST_HOURS_PER_WEEK = 40;
+const MAX_ST_HOURS_PER_DAY = 8;
+const MAX_TOTAL_HOURS_PER_DAY = 24;
+
+const DAY_NAMES = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
 
 const ST_HOUR_KEYS = [
   "mon_st_hours",
@@ -68,6 +81,36 @@ export function validatePayroll(rows: ParsedPayrollRow[]): ValidationResult {
   const errors: ValidationError[] = [];
   const employeeById = new Map<number, ValidatedEmployee>();
   const weeklyWages: ValidatedWeeklyWages[] = [];
+  const seenWageKeys = new Set<string>();
+
+  if (rows.length > 0) {
+    const actualHeaders = Object.keys(rows[0]!);
+    const expectedSet = new Set<string>(EXPECTED_PAYROLL_CSV_HEADERS);
+    const actualSet = new Set(actualHeaders);
+    const missing = EXPECTED_PAYROLL_CSV_HEADERS.filter(
+      (h) => !actualSet.has(h)
+    );
+    const extra = actualHeaders.filter((h: string) => !expectedSet.has(h));
+    if (missing.length > 0) {
+      errors.push({
+        rowIndex: 1,
+        message: `Header row: missing required column(s): ${missing.join(", ")}`,
+      });
+    }
+    if (extra.length > 0) {
+      errors.push({
+        rowIndex: 1,
+        message: `Header row: unexpected column(s): ${extra.join(", ")}`,
+      });
+    }
+    if (errors.length > 0) {
+      return {
+        employees: [],
+        weeklyWages: [],
+        errors,
+      };
+    }
+  }
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!;
@@ -160,13 +203,31 @@ export function validatePayroll(rows: ParsedPayrollRow[]): ValidationResult {
       }
       if (errors.some((e) => e.rowIndex === rowIndex)) continue;
 
+      for (let d = 0; d < 7; d++) {
+        if (stHours[d]! > MAX_ST_HOURS_PER_DAY) {
+          errors.push({
+            rowIndex,
+            message: `Standard hours for ${DAY_NAMES[d]} must be <= ${MAX_ST_HOURS_PER_DAY}: ${stHours[d]}`,
+          });
+        }
+      }
+
+      for (let d = 0; d < 7; d++) {
+        const totalDay = stHours[d]! + otHours[d]!;
+        if (totalDay > MAX_TOTAL_HOURS_PER_DAY) {
+          errors.push({
+            rowIndex,
+            message: `More than ${MAX_TOTAL_HOURS_PER_DAY} hours in a single day for ${DAY_NAMES[d]}: ${totalDay.toFixed(1)}`,
+          });
+        }
+      }
+
       const stTotal = stHours.reduce((a, b) => a + b, 0);
       if (stTotal > MAX_ST_HOURS_PER_WEEK) {
         errors.push({
           rowIndex,
           message: `Sum of standard hours (${stTotal}) must be <= 40`,
         });
-        continue;
       }
 
       const standardRate = parseFloatOrFail(
@@ -188,8 +249,18 @@ export function validatePayroll(rows: ParsedPayrollRow[]): ValidationResult {
           rowIndex,
           message: `overtime_rate (${overtimeRate}) must be 1.5 * standard_rate (${standardRate}) = ${expectedOt}`,
         });
-        continue;
       }
+
+      const wageKey = `${employeeId},${weekEnding.getTime()}`;
+      if (seenWageKeys.has(wageKey)) {
+        errors.push({
+          rowIndex,
+          message: `Duplicate row for employee ${employeeId}, week ending ${weekEndingStr}`,
+        });
+      }
+
+      if (errors.some((e) => e.rowIndex === rowIndex)) continue;
+      seenWageKeys.add(wageKey);
 
       weeklyWages.push({
         employeeId,

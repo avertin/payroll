@@ -8,3 +8,4 @@ export {
   getPayrollReport,
   getPayrollReportByEmployee,
 } from "./getPayrollReport";
+export { uploadPayrollCsv } from "./uploadPayrollCsv";
