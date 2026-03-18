@@ -4,10 +4,12 @@ import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type ExpandedState,
   type GroupingState,
   type SortingState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getGroupedRowModel,
   getSortedRowModel,
@@ -105,6 +107,18 @@ function buildColumns(): ColumnDef<PayrollRowDto>[] {
       cell: (info) => (info.getValue() as number).toFixed(1),
     },
     {
+      accessorKey: "standardRate",
+      header: "ST rate",
+      enableSorting: true,
+      cell: (info) => formatCurrency(info.getValue() as number),
+    },
+    {
+      accessorKey: "overtimeRate",
+      header: "OT rate",
+      enableSorting: true,
+      cell: (info) => formatCurrency(info.getValue() as number),
+    },
+    {
       accessorKey: "totalStWage",
       header: "ST wage",
       enableSorting: true,
@@ -127,14 +141,24 @@ function buildColumns(): ColumnDef<PayrollRowDto>[] {
 
 const columns = buildColumns();
 
+function initialGrouping(defaultGroupBy?: GroupByOption): GroupingState {
+  if (defaultGroupBy === "employee") return ["employeeId"];
+  if (defaultGroupBy === "week") return ["weekEnding"];
+  return [];
+}
+
 export function PayrollTable({
   rows,
   groupByNoneOnly = false,
+  defaultGroupBy,
 }: {
   rows: PayrollRowDto[];
   groupByNoneOnly?: boolean;
+  defaultGroupBy?: GroupByOption;
 }) {
-  const [grouping, setGrouping] = React.useState<GroupingState>([]);
+  const [grouping, setGrouping] = React.useState<GroupingState>(() =>
+    initialGrouping(defaultGroupBy)
+  );
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -143,6 +167,7 @@ export function PayrollTable({
     Record<string, boolean>
   >({ employeeId: false });
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
   const groupBy = React.useMemo((): GroupByOption => {
     if (grouping.includes("employeeId")) return "employee";
@@ -197,17 +222,18 @@ export function PayrollTable({
     },
     []
   );
-
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table required by plan
   const table = useReactTable({
     data: rows,
     columns,
+    getRowId: (row: PayrollRowDto) => row.id,
     state: {
       grouping,
       columnFilters,
       globalFilter,
       columnVisibility,
       sorting,
+      expanded,
     },
     onGroupingChange,
     onColumnFiltersChange,
@@ -218,11 +244,26 @@ export function PayrollTable({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     globalFilterFn: (row, _columnId, filterValue) => {
       const name = String(row.original.employeeName ?? "").toLowerCase();
       return name.includes(String(filterValue).toLowerCase());
     },
   });
+
+  // Keep all groups expanded (no collapse). Re-sync when filters/grouping/data change.
+  React.useLayoutEffect(() => {
+    if (grouping.length === 0) return;
+    const rowModel = table.getRowModel();
+    const next: ExpandedState = {};
+    for (const row of rowModel.rows) {
+      if (row.getIsGrouped() && row.subRows.length > 0) {
+        next[row.id] = true;
+      }
+    }
+    setExpanded(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, grouping, columnFilters, globalFilter]);
 
   const levelFilter = columnFilters.find((f) => f.id === "level")?.value as
     | string
@@ -250,11 +291,24 @@ export function PayrollTable({
     const rowsToRender = table.getRowModel().rows;
     const result: React.ReactNode[] = [];
     const groupByCol = grouping[0];
+
+    function getRowKey(row: {
+      getIsGrouped: () => boolean;
+      original: PayrollRowDto;
+    }) {
+      if (row.getIsGrouped()) {
+        return groupByCol === "weekEnding"
+          ? `group-week-${row.original.weekEnding}`
+          : `group-emp-${row.original.employeeId}`;
+      }
+      return row.original.id;
+    }
+
     for (const row of rowsToRender) {
       const isGrouped = row.getIsGrouped();
       result.push(
         <TableRow
-          key={row.id}
+          key={getRowKey(row)}
           className={cn(isGrouped && "bg-muted/50 font-medium")}
         >
           {row.getVisibleCells().map((cell) => {
@@ -267,42 +321,21 @@ export function PayrollTable({
                   cell.column.id === "weekEnding"));
             return (
               <TableCell key={cell.id}>
-                {isGroupDisplay ? (
-                  <>
-                    {row.subRows.length > 0 && (
-                      <span className="mr-2">
-                        ({row.subRows.length} week
-                        {row.subRows.length !== 1 ? "s" : ""})
-                      </span>
-                    )}
-                    {cell.column.id === "employeeName" ||
+                {isGroupDisplay
+                  ? cell.column.id === "employeeName" ||
                     cell.column.id === "employeeId"
-                      ? row.original.employeeName
-                      : cell.column.id === "weekEnding"
-                        ? formatDate(row.original.weekEnding)
-                        : null}
-                  </>
-                ) : !isGrouped && cell.column.columnDef.cell ? (
-                  flexRender(cell.column.columnDef.cell, cell.getContext())
-                ) : null}
+                    ? row.original.employeeName
+                    : cell.column.id === "weekEnding"
+                      ? formatDate(row.original.weekEnding)
+                      : null
+                  : !isGrouped && cell.column.columnDef.cell
+                    ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                    : null}
               </TableCell>
             );
           })}
         </TableRow>
       );
-      if (isGrouped && row.subRows.length > 0) {
-        for (const subRow of row.subRows) {
-          result.push(
-            <TableRow key={subRow.id}>
-              {subRow.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          );
-        }
-      }
     }
     return result;
   }

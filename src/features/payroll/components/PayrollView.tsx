@@ -102,15 +102,19 @@ export function PayrollView() {
         />
       )}
 
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs defaultValue="byWeek" className="w-full">
         <TabsList className="grid w-full max-w-[400px] grid-cols-2">
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="byWeek">By Week</TabsTrigger>
           <TabsTrigger value="byEmployee">By Employee</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-6">
+        <TabsContent value="byWeek" className="mt-6">
           {reportAll && (
-            <AllPayrollTable rows={reportAll.rows} groupByNoneOnly />
+            <AllPayrollTable
+              rows={reportAll.rows}
+              defaultGroupBy="week"
+              groupByNoneOnly
+            />
           )}
         </TabsContent>
 
