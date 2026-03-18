@@ -64,7 +64,8 @@ export async function getPayrollReport(): Promise<PayrollReportDto> {
     const totalOtHrs = sumHours(w, OT_KEYS);
     const totalStWage = totalStHrs * w.standardRate;
     const totalOtWage = totalOtHrs * w.overtimeRate;
-    const totalWage = totalStWage + totalOtWage;
+    const totalBenefitsWage = (totalStHrs + totalOtHrs) * w.benefitsRate;
+    const totalWage = totalStWage + totalOtWage + totalBenefitsWage;
     return {
       id: w.id,
       employeeId: w.employeeId,

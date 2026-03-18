@@ -10,7 +10,7 @@ This document explains how the take-home assignment was approached and what was 
 
 - Unique employee count
 - Min, max, and average for standard rate, overtime rate, and benefits rate
-- Cumulative payroll spend (standard + overtime wages; benefits are tracked separately)
+- Cumulative payroll spend (standard + overtime wages + benefits)
 - Percentage of total hours attributable to apprentices
 - Total hours on project
 

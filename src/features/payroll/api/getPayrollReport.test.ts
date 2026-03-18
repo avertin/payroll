@@ -15,7 +15,7 @@
  * data has fewer wage rows and lower totals than the doc.
  *
  * --- API vs doc ---
- * - Total pay: doc says 832,350 = st + ot + ben. API cumulativePayrollSpend = st + ot only (no benefits).
+ * - Total pay: doc says 832,350 = st + ot + ben. API cumulativePayrollSpend = st + ot + benefits.
  * - Rate min/max: doc lists min/max; getPayrollReport only exposes avg. getPayrollReportByEmployee exposes min/max/avg.
  *
  * Doc reference (implementation.md 159–176): 23 employees, 832350 total pay, 2485/7686 apprentice %, rate min/max/avg.
@@ -338,16 +338,11 @@ describe("getPayrollReport aggregations vs payroll_data.csv", () => {
       );
     });
 
-    it("getPayrollReport cumulativePayrollSpend is st+ot only (no benefits)", async () => {
+    it("getPayrollReport cumulativePayrollSpend includes st+ot+benefits", async () => {
       const report = await getPayrollReport();
-      // API does not include benefits in cumulativePayrollSpend.
       expect(report.grandTotals.cumulativePayrollSpend).toBeCloseTo(
-        expected.totalPayStOtOnly,
-        2
-      );
-      expect(report.grandTotals.cumulativePayrollSpend).not.toBeCloseTo(
         expected.totalPayStOtBen,
-        0
+        2
       );
     });
 
